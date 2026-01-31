@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: submissions-backend
+    env: node
+    root: .
+    plan: free
+    buildCommand: npm install && npx prisma generate
+    startCommand: node src/server.js
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
