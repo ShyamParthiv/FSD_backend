@@ -12,6 +12,10 @@ app.get('/health', (req, res) => {
     res.json({ status: 'ok' });
 });
 
+app.get('/', (req, res) => {
+    res.send('Submission Review API is running. Access endpoints at /api/...');
+});
+
 // Routes
 const authRoutes = require('./routes/auth.routes');
 const submissionRoutes = require('./routes/submissions.routes');
