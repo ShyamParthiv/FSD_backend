@@ -1,0 +1,59 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String       @id @default(uuid())
+  name          String
+  email         String       @unique
+  password_hash String
+  role          String       // 'contributor' | 'reviewer'
+  phone         String?
+  created_at    DateTime     @default(now())
+  updated_at    DateTime     @updatedAt
+
+  submissions   Submission[]
+  reviews       Review[]
+
+  @@map("users")
+}
+
+model Submission {
+  id                    String      @id @default(uuid())
+  contributor_id        String
+  contributor           User        @relation(fields: [contributor_id], references: [id], onDelete: Cascade)
+  title                 String
+  description           String
+  category              String
+  file_url              String?
+  status                String      @default("pending") // 'pending', 'approved', 'rejected'
+  resubmission_count    Int         @default(0)
+  original_submission_id String?
+  original_submission   Submission?  @relation("SubmissionHistory", fields: [original_submission_id], references: [id])
+  resubmissions         Submission[] @relation("SubmissionHistory")
+  
+  created_at            DateTime    @default(now())
+  updated_at            DateTime    @updatedAt
+
+  reviews               Review[]
+
+  @@map("submissions")
+}
+
+model Review {
+  id            String     @id @default(uuid())
+  submission_id String
+  submission    Submission @relation(fields: [submission_id], references: [id], onDelete: Cascade)
+  reviewer_id   String
+  reviewer      User       @relation(fields: [reviewer_id], references: [id], onDelete: Cascade)
+  status        String     // 'approved', 'rejected'
+  feedback      String?
+  reviewed_at   DateTime   @default(now())
+
+  @@map("reviews")
+}
