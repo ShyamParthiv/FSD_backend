@@ -4,17 +4,20 @@ const prisma = require('../utils/prismaClient');
 
 const register = async (req, res) => {
     try {
+        console.log('Register request received:', req.body);
         const { name, email, password, role, phone } = req.body;
+        const normalizedEmail = email ? email.trim().toLowerCase() : '';
+        const normalizedRole = role ? role.trim().toLowerCase() : '';
 
-        if (!email || !password || !name || !role) {
+        if (!normalizedEmail || !password || !name || !normalizedRole) {
             return res.status(400).json({ success: false, error: 'Missing required fields' });
         }
 
-        if (!['contributor', 'reviewer'].includes(role)) {
+        if (!['contributor', 'reviewer'].includes(normalizedRole)) {
             return res.status(400).json({ success: false, error: 'Invalid role' });
         }
 
-        const existingUser = await prisma.user.findUnique({ where: { email } });
+        const existingUser = await prisma.user.findUnique({ where: { email: normalizedEmail } });
         if (existingUser) {
             return res.status(409).json({ success: false, error: 'Email already exists' });
         }
@@ -24,10 +27,10 @@ const register = async (req, res) => {
         const user = await prisma.user.create({
             data: {
                 name,
-                email,
+                email: normalizedEmail,
                 password_hash,
-                role,
-                phone
+                role: normalizedRole,
+                phone: phone || null
             },
             select: {
                 id: true,
@@ -52,12 +55,13 @@ const register = async (req, res) => {
 const login = async (req, res) => {
     try {
         const { email, password } = req.body;
+        const normalizedEmail = email ? email.trim().toLowerCase() : '';
 
-        if (!email || !password) {
+        if (!normalizedEmail || !password) {
             return res.status(400).json({ success: false, error: 'Missing credentials' });
         }
 
-        const user = await prisma.user.findUnique({ where: { email } });
+        const user = await prisma.user.findUnique({ where: { email: normalizedEmail } });
         if (!user) {
             return res.status(401).json({ success: false, error: 'Invalid credentials' });
         }
